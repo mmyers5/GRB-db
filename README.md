@@ -14,6 +14,7 @@ with open(hst_file) as csvfile:
     hst_grbs.add(row['grb'])
     
 z_file = 'primary_table.csv'
+z_grbs = set()
 with open(z_file) as csvfile:
   reader = csv.DictReader(csvfile)
   for row in reader:
