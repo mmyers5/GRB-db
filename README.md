@@ -18,8 +18,11 @@ z_grbs = set()
 with open(z_file) as csvfile:
   reader = csv.DictReader(csvfile)
   for row in reader:
-    if row['z']:
-      z_grbs.add(row['grb'])
+    try:
+      z = float(row['z'])
+    except ValueError:
+      continue
+    z_grbs.add(row['grb'])
 ```
 
 With the two sets `hst_grbs` and `z_grbs`, you can compare elements with `z_grbs.intersect(hst_grbs)`, which returns a set of common elements. Problems might arise from columns not having standardized data formats, but I think I covered 'em!
