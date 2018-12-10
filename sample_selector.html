@@ -13115,11 +13115,14 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">csv</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">dateutil</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 
     </div>
@@ -13129,12 +13132,12 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">Z_FILE</span> <span class="o">=</span> <span class="s1">&#39;primary_table.csv&#39;</span>
-<span class="n">HST_FILE</span> <span class="o">=</span> <span class="s1">&#39;hst_table.csv.gz&#39;</span>
-<span class="n">SPITZ_FILE</span> <span class="o">=</span> <span class="s1">&#39;sha_table.csv&#39;</span>
+<span class="n">HST_FILE</span> <span class="o">=</span> <span class="s1">&#39;hsc/hsc_results_table.csv.gz&#39;</span>
+<span class="n">SPITZ_FILE</span> <span class="o">=</span> <span class="s1">&#39;sha/sha_results_table_1543989340.csv&#39;</span>
 <span class="n">SWIFT_FILE</span> <span class="o">=</span> <span class="s1">&#39;swift_table.csv&#39;</span>
 </pre></div>
 
@@ -13145,7 +13148,33 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># check if a grb has been observed nmonths after burst</span>
+<span class="k">def</span> <span class="nf">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+    <span class="c1"># grb string, e.g. 040924</span>
+    <span class="n">grb_num</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[^0-9]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">grb</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">grb</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;9&#39;</span><span class="p">):</span>
+        <span class="n">grb_date_str</span> <span class="o">=</span> <span class="s1">&#39;19</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grb_num</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">grb_date_str</span> <span class="o">=</span> <span class="s1">&#39;20</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">grb_num</span><span class="p">)</span>
+    
+    <span class="n">grb_date</span> <span class="o">=</span> <span class="n">dateutil</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">grb_date_str</span><span class="p">)</span>
+    <span class="n">obs_date</span> <span class="o">=</span> <span class="n">dateutil</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">obs_time</span><span class="p">)</span>
+    <span class="n">relative</span> <span class="o">=</span> <span class="n">dateutil</span><span class="o">.</span><span class="n">relativedelta</span><span class="o">.</span><span class="n">relativedelta</span><span class="p">(</span><span class="n">months</span><span class="o">=</span><span class="n">nmonths</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">obs_date</span> <span class="o">&gt;</span> <span class="n">grb_date</span> <span class="o">+</span> <span class="n">relative</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># grbs with redshift</span>
@@ -13168,7 +13197,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># grbs observed in Spitzer</span>
@@ -13176,7 +13205,12 @@ div#notebook {
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SPITZ_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
-        <span class="n">spitz_grbs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;grb&#39;</span><span class="p">])</span>
+        <span class="n">grb</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Search_Tgt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;GRB&#39;</span><span class="p">)</span>
+        <span class="n">obs_date</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;reqendtime&#39;</span><span class="p">]</span>
+        
+        <span class="n">is_late_enough</span> <span class="o">=</span> <span class="n">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">obs_date</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>       
+        <span class="k">if</span> <span class="n">is_late_enough</span><span class="p">:</span>
+            <span class="n">spitz_grbs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">grb</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -13186,42 +13220,108 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[121]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-    <span class="n">start_mm</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">start_yy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start_time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">:])</span>
-
-    <span class="n">grb_mm</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">grb</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
-    <span class="n">grb_yy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">grb</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
-    <span class="n">late_enough</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">if</span> <span class="n">start_yy</span> <span class="o">==</span> <span class="n">grb_yy</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">if</span> <span class="mi">12</span> <span class="o">-</span> <span class="n">grb_mm</span> <span class="o">-</span> <span class="n">start_mm</span> <span class="o">&lt;</span> <span class="n">nmonths</span><span class="p">:</span>
-            <span class="n">late_enough</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">elif</span> <span class="n">start_yy</span> <span class="o">==</span> <span class="n">grb_yy</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">grb_mm</span> <span class="o">-</span> <span class="n">start_mm</span> <span class="o">&lt;</span> <span class="n">nmonths</span><span class="p">:</span>
-            <span class="n">late_enough</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="n">late_enough</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[122]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># grbs observed in HST</span>
 <span class="n">hst_grbs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="c1"># hsc results indexed by primary_table since queries are </span>
+<span class="c1"># made from primary_table (parsed)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Z_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">grb_list</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+
 <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">HST_FILE</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>     <span class="c1"># skip dtype header</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">date_checker</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;grb&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;StartTime&#39;</span><span class="p">],</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-            <span class="n">hst_grbs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;grb&#39;</span><span class="p">])</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">])</span>
+        <span class="n">grb</span> <span class="o">=</span> <span class="n">grb_list</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">obs_date</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;StopTime&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">grb</span> <span class="ow">in</span> <span class="n">hst_grbs</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">is_grb_target</span> <span class="o">=</span> <span class="s1">&#39;grb&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Target Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">is_near</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Ang Sep (&#39;)&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">5</span>    <span class="c1"># dist in arcmin</span>
+        <span class="n">is_late_enough</span> <span class="o">=</span> <span class="n">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">obs_date</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>        
+        <span class="k">if</span> <span class="p">(</span><span class="n">is_grb_target</span> <span class="ow">or</span> <span class="n">is_near</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_late_enough</span><span class="p">:</span>
+            <span class="n">hst_grbs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">grb</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hst_grbs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">spitz_grbs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_grbs</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>163 431 449
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># This is problematic. Must compare against current sample</span>
+<span class="c1"># Issue from making angular separation too stringent in hsc search</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_grbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">spitz_grbs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">hst_grbs</span><span class="p">)))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>64
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># plotter goes here</span>
 </pre></div>
 
     </div>

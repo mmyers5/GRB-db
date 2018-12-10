@@ -1,23 +1,45 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[24]:
 
 
+import re
 import csv
 import gzip
+import dateutil
+import matplotlib.pyplot as plt
 
 
-# In[23]:
+# In[2]:
 
 
 Z_FILE = 'primary_table.csv'
-HST_FILE = 'hst_table.csv.gz'
-SPITZ_FILE = 'sha_table.csv'
+HST_FILE = 'hsc/hsc_results_table.csv.gz'
+SPITZ_FILE = 'sha/sha_results_table_1543989340.csv'
 SWIFT_FILE = 'swift_table.csv'
 
 
-# In[21]:
+# In[3]:
+
+
+# check if a grb has been observed nmonths after burst
+def date_checker(grb, obs_time, nmonths=6):
+    # grb string, e.g. 040924
+    grb_num = re.sub('[^0-9]', '', grb)
+    if grb.startswith('9'):
+        grb_date_str = '19{}'.format(grb_num)
+    else:
+        grb_date_str = '20{}'.format(grb_num)
+    
+    grb_date = dateutil.parser.parse(grb_date_str)
+    obs_date = dateutil.parser.parse(obs_time)
+    relative = dateutil.relativedelta.relativedelta(months=nmonths)
+    
+    return obs_date > grb_date + relative
+
+
+# In[4]:
 
 
 # grbs with redshift
@@ -33,7 +55,7 @@ with open(Z_FILE, 'r') as f:
         z_grbs.add(row['grb'])
 
 
-# In[24]:
+# In[5]:
 
 
 # grbs observed in Spitzer
@@ -41,36 +63,57 @@ spitz_grbs = set()
 with open(SPITZ_FILE, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
-        spitz_grbs.add(row['grb'])
+        grb = row['Search_Tgt'].strip('GRB')
+        obs_date = row['reqendtime']
+        
+        is_late_enough = date_checker(grb, obs_date, nmonths=4)       
+        if is_late_enough:
+            spitz_grbs.add(grb)
 
 
-# In[121]:
-
-
-def date_checker(grb, start_time, nmonths=4):
-    start_mm = int(start_time.split('/')[0])
-    start_yy = int(start_time.split('/')[-1].split(' ')[0][2:])
-
-    grb_mm = int(grb[2:4])
-    grb_yy = int(grb[0:2])
-    late_enough = True
-    if start_yy == grb_yy + 1:
-        if 12 - grb_mm - start_mm < nmonths:
-            late_enough = False
-    elif start_yy == grb_yy:
-        if grb_mm - start_mm < nmonths:
-            late_enough = False
-    return late_enough
-
-
-# In[122]:
+# In[20]:
 
 
 # grbs observed in HST
 hst_grbs = set()
+# hsc results indexed by primary_table since queries are 
+# made from primary_table (parsed)
+with open(Z_FILE, 'r') as f:
+    grb_list = f.readlines()
+
+
 with gzip.open(HST_FILE, 'rt') as f:
     reader = csv.DictReader(f)
+    next(reader)     # skip dtype header
     for row in reader:
-        if date_checker(row['grb'], row['StartTime'], nmonths=4):
-            hst_grbs.add(row['grb'])
+        entry = int(row['Entry'])
+        grb = grb_list[entry].split(',')[0]
+        obs_date = row['StopTime']
+        if grb in hst_grbs:
+            continue
+        is_grb_target = 'grb' in row['Target Name'].lower()
+        is_near = float(row["Ang Sep (')"]) < 5    # dist in arcmin
+        is_late_enough = date_checker(grb, obs_date, nmonths=6)        
+        if (is_grb_target or is_near) and is_late_enough:
+            hst_grbs.add(grb)
+
+
+# In[21]:
+
+
+print(len(hst_grbs), len(spitz_grbs), len(z_grbs))
+
+
+# In[22]:
+
+
+# This is problematic. Must compare against current sample
+# Issue from making angular separation too stringent in hsc search
+print(len(z_grbs.intersection(spitz_grbs).intersection(hst_grbs)))
+
+
+# In[ ]:
+
+
+# plotter goes here
 
