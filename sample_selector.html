@@ -13115,10 +13115,11 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">gzip</span>
 <span class="kn">import</span> <span class="nn">dateutil</span>
@@ -13136,8 +13137,8 @@ div#notebook {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">Z_FILE</span> <span class="o">=</span> <span class="s1">&#39;primary_table.csv&#39;</span>
-<span class="n">HST_FILE</span> <span class="o">=</span> <span class="s1">&#39;hsc/hsc_results_table.csv.gz&#39;</span>
-<span class="n">SPITZ_FILE</span> <span class="o">=</span> <span class="s1">&#39;sha/sha_results_table_1543989340.csv&#39;</span>
+<span class="n">HST_FILE</span> <span class="o">=</span> <span class="s1">&#39;hsc/hst_search.csv.gz&#39;</span>
+<span class="n">SPITZ_FILE</span> <span class="o">=</span> <span class="s1">&#39;sha/sha_results_table_combined.csv&#39;</span>
 <span class="n">SWIFT_FILE</span> <span class="o">=</span> <span class="s1">&#39;swift_table.csv&#39;</span>
 </pre></div>
 
@@ -13205,10 +13206,10 @@ div#notebook {
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">SPITZ_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
-        <span class="n">grb</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Search_Tgt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;GRB&#39;</span><span class="p">)</span>
+        <span class="n">grb</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Search_Tgt&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">:]</span>
         <span class="n">obs_date</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;reqendtime&#39;</span><span class="p">]</span>
         
-        <span class="n">is_late_enough</span> <span class="o">=</span> <span class="n">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">obs_date</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>       
+        <span class="n">is_late_enough</span> <span class="o">=</span> <span class="n">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">obs_date</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>       
         <span class="k">if</span> <span class="n">is_late_enough</span><span class="p">:</span>
             <span class="n">spitz_grbs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">grb</span><span class="p">)</span>
 </pre></div>
@@ -13220,30 +13221,35 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># grbs observed in HST</span>
 <span class="n">hst_grbs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 <span class="c1"># hsc results indexed by primary_table since queries are </span>
 <span class="c1"># made from primary_table (parsed)</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Z_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="n">query_table</span> <span class="o">=</span> <span class="s1">&#39;hsc/sha_hsc_query_table.csv&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">query_table</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">grb_list</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-
 
 <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">HST_FILE</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="nb">next</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>     <span class="c1"># skip dtype header</span>
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
-        <span class="n">entry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">])</span>
-        <span class="n">grb</span> <span class="o">=</span> <span class="n">grb_list</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">obs_date</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;StopTime&#39;</span><span class="p">]</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">grb</span> <span class="o">=</span> <span class="n">grb_list</span><span class="p">[</span><span class="n">entry</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">grb</span> <span class="ow">in</span> <span class="n">hst_grbs</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">is_grb_target</span> <span class="o">=</span> <span class="s1">&#39;grb&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Target Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">is_near</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Ang Sep (&#39;)&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">5</span>    <span class="c1"># dist in arcmin</span>
-        <span class="n">is_late_enough</span> <span class="o">=</span> <span class="n">date_checker</span><span class="p">(</span><span class="n">grb</span><span class="p">,</span> <span class="n">obs_date</span><span class="p">,</span> <span class="n">nmonths</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>        
-        <span class="k">if</span> <span class="p">(</span><span class="n">is_grb_target</span> <span class="ow">or</span> <span class="n">is_near</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_late_enough</span><span class="p">:</span>
+        <span class="n">obs_date</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Stop Time&#39;</span><span class="p">]</span>
+
+        <span class="n">is_grb_target</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;grb&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Target Name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span>
+                <span class="s1">&#39;gamma&#39;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;Target Descrip&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">is_near</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Ang Sep (&#39;)&quot;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">5.2</span>    <span class="c1"># dist in arcmin   </span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">is_grb_target</span> <span class="ow">or</span> <span class="n">is_near</span><span class="p">):</span>
             <span class="n">hst_grbs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">grb</span><span class="p">)</span>
 </pre></div>
 
@@ -13254,7 +13260,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hst_grbs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">spitz_grbs</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_grbs</span><span class="p">))</span>
@@ -13274,7 +13280,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>163 431 449
+<pre>236 612 449
 </pre>
 </div>
 </div>
@@ -13285,12 +13291,11 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># This is problematic. Must compare against current sample</span>
-<span class="c1"># Issue from making angular separation too stringent in hsc search</span>
-<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_grbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">spitz_grbs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">hst_grbs</span><span class="p">)))</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">SAMPLE_GRBS</span> <span class="o">=</span> <span class="p">(</span><span class="n">z_grbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">spitz_grbs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">hst_grbs</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">SAMPLE_GRBS</span><span class="p">))</span>
 </pre></div>
 
     </div>
@@ -13307,9 +13312,258 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>64
+<pre>125
 </pre>
 </div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># plotter goes here</span>
+<span class="c1"># very crude!</span>
+<span class="n">z_grbs_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Z_FILE</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">grb</span><span class="p">,</span> <span class="n">radec</span><span class="p">,</span> <span class="n">tel</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+            <span class="n">z_grbs_dict</span><span class="p">[</span><span class="n">grb</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+<span class="n">sample_grbs</span> <span class="o">=</span> <span class="n">z_grbs</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">spitz_grbs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">hst_grbs</span><span class="p">)</span>
+<span class="n">z_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">z_grbs_dict</span><span class="p">[</span><span class="n">grb</span><span class="p">]</span> <span class="k">for</span> <span class="n">grb</span> <span class="ow">in</span> <span class="n">sample_grbs</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">max</span><span class="p">(</span><span class="n">z_list</span><span class="p">))</span><span class="o">/</span><span class="mf">2.</span>
+<span class="n">ticks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">z_list</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">z_list</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\\\\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Redshift&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Number of Targets Observed&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">z_list</span><span class="p">)))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">wav_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">3.6</span><span class="o">/</span><span class="p">(</span><span class="n">z_grbs_dict</span><span class="p">[</span><span class="n">grb</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">grb</span> <span class="ow">in</span> <span class="n">sample_grbs</span><span class="p">]</span>
+<span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">wav_list</span><span class="p">)))</span><span class="o">/</span><span class="mf">3.</span>
+<span class="n">ticks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">max</span><span class="p">(</span><span class="n">z_list</span><span class="p">))</span><span class="o">/</span><span class="mf">2.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">wav_list</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\\\\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Rest Wavelength&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Number of Targets Observed&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="nb">min</span><span class="p">(</span><span class="n">wav_list</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">wav_list</span><span class="p">)))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[9]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>(0.38876889848812096, 3.5696579077838377)</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+"
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">BLANCHARD_GRBS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;040924&#39;</span><span class="p">,</span> <span class="s1">&#39;041006&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;050315&#39;</span><span class="p">,</span> <span class="s1">&#39;050401&#39;</span><span class="p">,</span> <span class="s1">&#39;050525&#39;</span><span class="p">,</span> <span class="s1">&#39;050730&#39;</span><span class="p">,</span> <span class="s1">&#39;050824&#39;</span><span class="p">,</span> <span class="s1">&#39;050908&#39;</span><span class="p">,</span> <span class="s1">&#39;051016B&#39;</span><span class="p">,</span> <span class="s1">&#39;051022&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;060124&#39;</span><span class="p">,</span> <span class="s1">&#39;060206&#39;</span><span class="p">,</span> <span class="s1">&#39;060218&#39;</span><span class="p">,</span> <span class="s1">&#39;060512&#39;</span><span class="p">,</span> <span class="s1">&#39;060526&#39;</span><span class="p">,</span> <span class="s1">&#39;060607&#39;</span><span class="p">,</span> <span class="s1">&#39;060614&#39;</span><span class="p">,</span> <span class="s1">&#39;060719&#39;</span><span class="p">,</span> <span class="s1">&#39;060729&#39;</span><span class="p">,</span> <span class="s1">&#39;061007&#39;</span><span class="p">,</span> <span class="s1">&#39;061110B&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;070208&#39;</span><span class="p">,</span> <span class="s1">&#39;070306&#39;</span><span class="p">,</span> <span class="s1">&#39;070318&#39;</span><span class="p">,</span> <span class="s1">&#39;070721B&#39;</span><span class="p">,</span> <span class="s1">&#39;070802&#39;</span><span class="p">,</span> <span class="s1">&#39;071112C&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;080319B&#39;</span><span class="p">,</span> <span class="s1">&#39;080325&#39;</span><span class="p">,</span> <span class="s1">&#39;080430&#39;</span><span class="p">,</span> <span class="s1">&#39;080603B&#39;</span><span class="p">,</span> <span class="s1">&#39;080707&#39;</span><span class="p">,</span> <span class="s1">&#39;080805&#39;</span><span class="p">,</span> <span class="s1">&#39;080928&#39;</span><span class="p">,</span> <span class="s1">&#39;081007&#39;</span><span class="p">,</span> <span class="s1">&#39;081008&#39;</span><span class="p">,</span><span class="s1">&#39; 081109&#39;</span><span class="p">,</span> <span class="s1">&#39;081121&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;090407&#39;</span><span class="p">,</span> <span class="s1">&#39;090417B&#39;</span><span class="p">,</span> <span class="s1">&#39;090424&#39;</span><span class="p">,</span> <span class="s1">&#39;091127&#39;</span><span class="p">,</span> <span class="s1">&#39;091208B&#39;</span><span class="p">,</span> 
+    <span class="s1">&#39;100615A&#39;</span><span class="p">,</span> <span class="s1">&#39;100621A&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;110731A&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;120119A&#39;</span>
+<span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">missing_grbs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">grb</span> <span class="ow">in</span> <span class="n">SAMPLE_GRBS</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;X&#39;</span> <span class="ow">in</span> <span class="n">grb</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">grb</span> <span class="ow">in</span> <span class="n">BLANCHARD_GRBS</span><span class="p">):</span>
+        <span class="k">continue</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">missing_grbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grb</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">missing_grbs</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>77
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing_grbs</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[31]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>[&#39;000131&#39;,
+ &#39;000301C&#39;,
+ &#39;000418&#39;,
+ &#39;000926&#39;,
+ &#39;010222&#39;,
+ &#39;010921&#39;,
+ &#39;011121&#39;,
+ &#39;011211&#39;,
+ &#39;020124&#39;,
+ &#39;020405&#39;,
+ &#39;020813&#39;,
+ &#39;021004&#39;,
+ &#39;021211&#39;,
+ &#39;030323&#39;,
+ &#39;030329&#39;,
+ &#39;050408&#39;,
+ &#39;050820&#39;,
+ &#39;050904&#39;,
+ &#39;060115&#39;,
+ &#39;060223&#39;,
+ &#39;060502&#39;,
+ &#39;060505&#39;,
+ &#39;060522&#39;,
+ &#39;060605&#39;,
+ &#39;060814&#39;,
+ &#39;060912&#39;,
+ &#39;060927&#39;,
+ &#39;061110&#39;,
+ &#39;061222&#39;,
+ &#39;070521&#39;,
+ &#39;071010&#39;,
+ &#39;071020&#39;,
+ &#39;071021&#39;,
+ &#39;071031&#39;,
+ &#39;071122&#39;,
+ &#39;080207&#39;,
+ &#39;080310&#39;,
+ &#39;080520&#39;,
+ &#39;080603&#39;,
+ &#39;080605&#39;,
+ &#39;080607&#39;,
+ &#39;080710&#39;,
+ &#39;080916&#39;,
+ &#39;081109&#39;,
+ &#39;081221&#39;,
+ &#39;090102&#39;,
+ &#39;090113&#39;,
+ &#39;090418&#39;,
+ &#39;090423&#39;,
+ &#39;090618&#39;,
+ &#39;100728B&#39;,
+ &#39;100905A&#39;,
+ &#39;101225A&#39;,
+ &#39;111005A&#39;,
+ &#39;111209A&#39;,
+ &#39;120521C&#39;,
+ &#39;120711A&#39;,
+ &#39;130427A&#39;,
+ &#39;130505A&#39;,
+ &#39;130606A&#39;,
+ &#39;130925A&#39;,
+ &#39;140515A&#39;,
+ &#39;150314A&#39;,
+ &#39;161219B&#39;,
+ &#39;970228&#39;,
+ &#39;970508&#39;,
+ &#39;970828&#39;,
+ &#39;971214&#39;,
+ &#39;980425&#39;,
+ &#39;980613&#39;,
+ &#39;980703&#39;,
+ &#39;990123&#39;,
+ &#39;990506&#39;,
+ &#39;990510&#39;,
+ &#39;990705&#39;,
+ &#39;990712&#39;,
+ &#39;991208&#39;]</pre>
+</div>
+
 </div>
 
 </div>
@@ -13321,7 +13575,7 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># plotter goes here</span>
+<div class=" highlight hl-ipython3"><pre><span></span> 
 </pre></div>
 
     </div>
